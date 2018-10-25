@@ -1,11 +1,15 @@
 # VERSION 1.9.0-4
-# AUTHOR: Matthieu "Puckel_" Roisil
 # DESCRIPTION: Basic Airflow container
 # BUILD: docker build --rm -t puckel/docker-airflow .
 # SOURCE: https://github.com/puckel/docker-airflow
 
-FROM python:3.6-slim
-LABEL maintainer="Puckel_"
+# Changes from original:
+# - python:2.7-slim and other dependencies for Python 2
+# - Install packages requiring GCC:
+# -- Twisted
+# -- pyvcf
+
+FROM python:2.7-slim
 
 # Never prompts the user for choices on installation/configuration of packages
 ENV DEBIAN_FRONTEND noninteractive
@@ -24,7 +28,7 @@ ENV LC_MESSAGES en_US.UTF-8
 
 RUN set -ex \
     && buildDeps=' \
-        python3-dev \
+        python-dev \
         libkrb5-dev \
         libsasl2-dev \
         libssl-dev \
@@ -39,8 +43,8 @@ RUN set -ex \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
         $buildDeps \
-        python3-pip \
-        python3-requests \
+        python-pip \
+        python-requests \
         mysql-client \
         mysql-server \
         default-libmysqlclient-dev \
@@ -55,6 +59,10 @@ RUN set -ex \
     && useradd -ms /bin/bash -d ${AIRFLOW_HOME} airflow \
     && pip install -U pip setuptools wheel \
     && pip install Cython \
+    && pip install Twisted \
+    && pip install pyvcf \
+    && pip install google-api-python-client \
+    && pip install oauth2client \
     && pip install pytz \
     && pip install pyOpenSSL \
     && pip install ndg-httpsclient \
