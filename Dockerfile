@@ -1,14 +1,14 @@
-# VERSION 1.10.0-4
-
+# VERSION 1.10.1
+# AUTHOR: Matthieu "Puckel_" Roisil
 # DESCRIPTION: Basic Airflow container
 # BUILD: docker build --rm -t puckel/docker-airflow .
 # SOURCE: https://github.com/puckel/docker-airflow
 
-# Changes from the original:
-# - python:2.7-slim and other dependencies for Python 2
-# - Pre-install packages requiring GCC:
-#   + Twisted
-#   + pyvcf
+# CHANGES FROM THE ORIGINAL:
+# * python:2.7-slim and other dependencies for Python 2
+# * pre-installed packages requiring GCC:
+#   - Twisted
+#   - pyvcf
 
 FROM python:2.7-slim
 
@@ -17,7 +17,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV TERM linux
 
 # Airflow
-ARG AIRFLOW_VERSION=1.10.0
+ARG AIRFLOW_VERSION=1.10.1
 ARG AIRFLOW_HOME=/usr/local/airflow
 ARG AIRFLOW_DEPS=""
 ARG PYTHON_DEPS=""
@@ -33,12 +33,11 @@ ENV LC_MESSAGES en_US.UTF-8
 RUN set -ex \
     && buildDeps=' \
         python-dev \
+        freetds-dev \
         libkrb5-dev \
         libsasl2-dev \
         libssl-dev \
         libffi-dev \
-        libblas-dev \
-        liblapack-dev \
         libpq-dev \
         git \
     ' \
@@ -46,6 +45,7 @@ RUN set -ex \
     && apt-get upgrade -yqq \
     && apt-get install -yqq --no-install-recommends \
         $buildDeps \
+        freetds-bin \
         build-essential \
         python-pip \
         python-requests \
@@ -72,7 +72,7 @@ RUN set -ex \
     && pip install ndg-httpsclient \
     && pip install pyasn1 \
     && pip install apache-airflow[crypto,celery,postgres,hive,jdbc,mysql,ssh${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}]==${AIRFLOW_VERSION} \
-    && pip install 'celery[redis]>=4.1.1,<4.2.0' \
+    && pip install 'redis>=2.10.5,<3' \
     && if [ -n "${PYTHON_DEPS}" ]; then pip install ${PYTHON_DEPS}; fi \
     && apt-get purge --auto-remove -yqq $buildDeps \
     && apt-get autoremove -yqq --purge \
